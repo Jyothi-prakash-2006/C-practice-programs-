@@ -1,0 +1,31 @@
+#include <iostream>
+#include <sstream>
+#include <map>
+using namespace std;
+
+void countWords(string sentence) {
+    string word;
+    map<string, int> frequency;
+    stringstream ss(sentence);
+
+    while (ss >> word) {
+        frequency[word]++;
+    }
+
+    cout << "\nWord Frequency:\n";
+
+    for (auto item : frequency) {
+        cout << item.first << " : " << item.second << endl;
+    }
+}
+
+int main() {
+    string sentence;
+
+    cout << "Enter a sentence: ";
+    getline(cin, sentence);
+
+    countWords(sentence);
+
+    return 0;
+}
