@@ -1,0 +1,71 @@
+#include <iostream>
+#include <vector>
+#include <queue>
+#include <climits>
+using namespace std;
+
+void dijkstra(int source, vector<vector<pair<int, int>>> &graph) {
+    int n = graph.size();
+    vector<int> distance(n, INT_MAX);
+
+    priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> pq;
+
+    distance[source] = 0;
+    pq.push({0, source});
+
+    while (!pq.empty()) {
+        int currentDistance = pq.top().first;
+        int node = pq.top().second;
+        pq.pop();
+
+        if (currentDistance > distance[node])
+            continue;
+
+        for (auto edge : graph[node]) {
+            int nextNode = edge.first;
+            int weight = edge.second;
+
+            if (distance[node] + weight < distance[nextNode]) {
+                distance[nextNode] = distance[node] + weight;
+                pq.push({distance[nextNode], nextNode});
+            }
+        }
+    }
+
+    cout << "Shortest distances from vertex " << source << ":\n";
+
+    for (int i = 0; i < n; i++) {
+        cout << source << " -> " << i << " = ";
+
+        if (distance[i] == INT_MAX)
+            cout << "INF";
+        else
+            cout << distance[i];
+
+        cout << endl;
+    }
+}
+
+int main() {
+    int vertices = 6;
+
+    vector<vector<pair<int, int>>> graph(vertices);
+
+    graph[0].push_back({1, 4});
+    graph[0].push_back({2, 2});
+
+    graph[1].push_back({2, 1});
+    graph[1].push_back({3, 5});
+
+    graph[2].push_back({3, 8});
+    graph[2].push_back({4, 10});
+
+    graph[3].push_back({4, 2});
+    graph[3].push_back({5, 6});
+
+    graph[4].push_back({5, 3});
+
+    dijkstra(0, graph);
+
+    return 0;
+}
