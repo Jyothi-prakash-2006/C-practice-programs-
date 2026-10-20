@@ -1,0 +1,89 @@
+#include <iostream>
+#include <string>
+using namespace std;
+
+struct TrieNode {
+    TrieNode* children[26];
+    bool isEnd;
+
+    TrieNode() {
+        isEnd = false;
+
+        for (int i = 0; i < 26; i++)
+            children[i] = nullptr;
+    }
+};
+
+class Trie {
+private:
+    TrieNode* root;
+
+    void display(TrieNode* node, string word) {
+        if (node->isEnd)
+            cout << word << endl;
+
+        for (int i = 0; i < 26; i++) {
+            if (node->children[i] != nullptr)
+                display(node->children[i], word + char('a' + i));
+        }
+    }
+
+public:
+    Trie() {
+        root = new TrieNode();
+    }
+
+    void insert(string word) {
+        TrieNode* current = root;
+
+        for (char ch : word) {
+            int index = ch - 'a';
+
+            if (current->children[index] == nullptr)
+                current->children[index] = new TrieNode();
+
+            current = current->children[index];
+        }
+
+        current->isEnd = true;
+    }
+
+    void autocomplete(string prefix) {
+        TrieNode* current = root;
+
+        for (char ch : prefix) {
+            int index = ch - 'a';
+
+            if (current->children[index] == nullptr) {
+                cout << "No suggestions found." << endl;
+                return;
+            }
+
+            current = current->children[index];
+        }
+
+        cout << "Suggestions:\n";
+        display(current, prefix);
+    }
+};
+
+int main() {
+    Trie trie;
+
+    trie.insert("apple");
+    trie.insert("application");
+    trie.insert("apply");
+    trie.insert("app");
+    trie.insert("banana");
+    trie.insert("ball");
+    trie.insert("bat");
+
+    string prefix;
+
+    cout << "Enter prefix: ";
+    cin >> prefix;
+
+    trie.autocomplete(prefix);
+
+    return 0;
+}
