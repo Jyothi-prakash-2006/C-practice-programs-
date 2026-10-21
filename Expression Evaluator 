@@ -1,0 +1,50 @@
+#include <iostream>
+#include <stack>
+#include <string>
+#include <cctype>
+using namespace std;
+
+int precedence(char op) {
+    if (op == '+' || op == '-')
+        return 1;
+
+    if (op == '*' || op == '/')
+        return 2;
+
+    return 0;
+}
+
+int applyOperation(int a, int b, char op) {
+    if (op == '+')
+        return a + b;
+
+    if (op == '-')
+        return a - b;
+
+    if (op == '*')
+        return a * b;
+
+    if (op == '/')
+        return a / b;
+
+    return 0;
+}
+
+int evaluate(string expression) {
+    stack<int> values;
+    stack<char> operators;
+
+    for (int i = 0; i < expression.length(); i++) {
+        if (expression[i] == ' ')
+            continue;
+
+        if (isdigit(expression[i])) {
+            int number = 0;
+
+            while (i < expression.length() && isdigit(expression[i])) {
+                number = number * 10 + (expression[i] - '0');
+                i++;
+            }
+
+            values.push(number);
+            i
