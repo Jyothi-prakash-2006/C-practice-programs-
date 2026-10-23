@@ -1,0 +1,27 @@
+#include <iostream>
+#include <queue>
+#include <vector>
+using namespace std;
+
+int kthLargest(vector<int> nums, int k) {
+    priority_queue<int, vector<int>, greater<int>> minHeap;
+
+    for (int num : nums) {
+        minHeap.push(num);
+
+        if (minHeap.size() > k)
+            minHeap.pop();
+    }
+
+    return minHeap.top();
+}
+
+int main() {
+    vector<int> nums = {12, 3, 5, 7, 19, 1, 15};
+    int k = 3;
+
+    cout << k << "rd largest element = "
+         << kthLargest(nums, k) << endl;
+
+    return 0;
+}
