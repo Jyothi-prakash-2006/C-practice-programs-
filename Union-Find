@@ -1,0 +1,68 @@
+#include <iostream>
+#include <vector>
+using namespace std;
+
+class DisjointSet {
+    vector<int> parent;
+    vector<int> rank;
+
+public:
+    DisjointSet(int n) {
+        parent.resize(n);
+        rank.resize(n, 0);
+
+        for (int i = 0; i < n; i++)
+            parent[i] = i;
+    }
+
+    int find(int x) {
+        if (parent[x] != x)
+            parent[x] = find(parent[x]);
+
+        return parent[x];
+    }
+
+    void unite(int a, int b) {
+        a = find(a);
+        b = find(b);
+
+        if (a == b)
+            return;
+
+        if (rank[a] < rank[b])
+            swap(a, b);
+
+        parent[b] = a;
+
+        if (rank[a] == rank[b])
+            rank[a]++;
+    }
+
+    bool connected(int a, int b) {
+        return find(a) == find(b);
+    }
+};
+
+int main() {
+    DisjointSet ds(7);
+
+    ds.unite(0, 1);
+    ds.unite(1, 2);
+    ds.unite(3, 4);
+    ds.unite(5, 6);
+
+    cout << boolalpha;
+
+    cout << "0 and 2 connected: "
+         << ds.connected(0, 2) << endl;
+
+    cout << "0 and 4 connected: "
+         << ds.connected(0, 4) << endl;
+
+    ds.unite(2, 4);
+
+    cout << "0 and 4 connected after union: "
+         << ds.connected(0, 4) << endl;
+
+    return 0;
+}
