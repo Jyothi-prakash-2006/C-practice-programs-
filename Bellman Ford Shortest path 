@@ -1,0 +1,56 @@
+#include <iostream>
+#include <vector>
+using namespace std;
+
+struct Edge {
+    int source;
+    int destination;
+    int weight;
+};
+
+void bellmanFord(int vertices, vector<Edge>& edges, int source) {
+    vector<int> distance(vertices, 1000000);
+    distance[source] = 0;
+
+    for (int i = 1; i < vertices; i++) {
+        for (auto edge : edges) {
+            if (distance[edge.source] != 1000000 &&
+                distance[edge.source] + edge.weight < distance[edge.destination]) {
+                distance[edge.destination] =
+                    distance[edge.source] + edge.weight;
+            }
+        }
+    }
+
+    for (auto edge : edges) {
+        if (distance[edge.source] != 1000000 &&
+            distance[edge.source] + edge.weight < distance[edge.destination]) {
+            cout << "Negative cycle detected." << endl;
+            return;
+        }
+    }
+
+    cout << "Shortest distances:\n";
+
+    for (int i = 0; i < vertices; i++)
+        cout << source << " -> " << i << " = " << distance[i] << endl;
+}
+
+int main() {
+    int vertices = 5;
+
+    vector<Edge> edges = {
+        {0, 1, -1},
+        {0, 2, 4},
+        {1, 2, 3},
+        {1, 3, 2},
+        {1, 4, 2},
+        {3, 2, 5},
+        {3, 1, 1},
+        {4, 3, -3}
+    };
+
+    bellmanFord(vertices, edges, 0);
+
+    return 0;
+}
