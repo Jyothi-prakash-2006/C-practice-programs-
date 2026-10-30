@@ -1,0 +1,69 @@
+#include <iostream>
+#include <vector>
+#include <queue>
+#include <cmath>
+using namespace std;
+
+struct Node {
+    int x, y, g, f;
+
+    bool operator>(const Node& other) const {
+        return f > other.f;
+    }
+};
+
+int main() {
+    int n, m;
+    cin >> n >> m;
+
+    vector<vector<int>> grid(n, vector<int>(m));
+
+    for (auto& row : grid)
+        for (int& cell : row)
+            cin >> cell;
+
+    int sx, sy, ex, ey;
+    cin >> sx >> sy >> ex >> ey;
+
+    vector<vector<int>> dist(n, vector<int>(m, 1e9));
+    priority_queue<Node, vector<Node>, greater<Node>> pq;
+
+    auto heuristic = [&](int x, int y) {
+        return abs(x - ex) + abs(y - ey);
+    };
+
+    dist[sx][sy] = 0;
+    pq.push({sx, sy, 0, heuristic(sx, sy)});
+
+    int dx[] = {-1, 1, 0, 0};
+    int dy[] = {0, 0, -1, 1};
+
+    while (!pq.empty()) {
+        Node cur = pq.top();
+        pq.pop();
+
+        if (cur.x == ex && cur.y == ey) {
+            cout << "Shortest Path Cost: " << cur.g << endl;
+            return 0;
+        }
+
+        for (int k = 0; k < 4; k++) {
+            int nx = cur.x + dx[k];
+            int ny = cur.y + dy[k];
+
+            if (nx >= 0 && nx < n && ny >= 0 && ny < m && grid[nx][ny] == 0) {
+                int newCost = cur.g + 1;
+
+                if (newCost < dist[nx][ny]) {
+                    dist[nx][ny] = newCost;
+                    int f = newCost + heuristic(nx, ny);
+                    pq.push({nx, ny, newCost, f});
+                }
+            }
+        }
+    }
+
+    cout << "No Path Found" << endl;
+
+    return 0;
+}
