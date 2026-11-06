@@ -1,0 +1,78 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+using namespace std;
+
+class Graph {
+    int n, timer = 0;
+    vector<vector<pair<int, int>>> adj;
+    vector<int> tin, low;
+    vector<pair<int, int>> bridges;
+
+    void dfs(int u, int parentEdge) {
+        tin[u] = low[u] = timer++;
+
+        for (auto [v, id] : adj[u]) {
+            if (id == parentEdge)
+                continue;
+
+            if (tin[v] != -1) {
+                low[u] = min(low[u], tin[v]);
+            } else {
+                dfs(v, id);
+
+                low[u] = min(low[u], low[v]);
+
+                if (low[v] > tin[u])
+                    bridges.push_back({u, v});
+            }
+        }
+    }
+
+public:
+    Graph(int vertices) {
+        n = vertices;
+        adj.resize(n);
+        tin.assign(n, -1);
+        low.assign(n, -1);
+    }
+
+    void addEdge(int u, int v, int id) {
+        adj[u].push_back({v, id});
+        adj[v].push_back({u, id});
+    }
+
+    void findBridges() {
+        for (int i = 0; i < n; i++) {
+            if (tin[i] == -1)
+                dfs(i, -1);
+        }
+
+        if (bridges.empty()) {
+            cout << "No Bridges Found\n";
+            return;
+        }
+
+        cout << "Bridges in the Graph:\n";
+
+        for (auto [u, v] : bridges)
+            cout << u << " - " << v << endl;
+    }
+};
+
+int main() {
+    int n, m;
+    cin >> n >> m;
+
+    Graph g(n);
+
+    for (int i = 0; i < m; i++) {
+        int u, v;
+        cin >> u >> v;
+        g.addEdge(u, v, i);
+    }
+
+    g.findBridges();
+
+    return 0;
+}
