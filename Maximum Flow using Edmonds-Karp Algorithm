@@ -1,0 +1,101 @@
+#include <iostream>
+#include <vector>
+#include <queue>
+#include <climits>
+using namespace std;
+
+class Graph {
+    int n;
+    vector<vector<long long>> capacity;
+    vector<vector<int>> adj;
+
+public:
+    Graph(int vertices) {
+        n = vertices;
+        capacity.assign(n, vector<long long>(n, 0));
+        adj.resize(n);
+    }
+
+    void addEdge(int u, int v, long long w) {
+        adj[u].push_back(v);
+        adj[v].push_back(u);
+        capacity[u][v] += w;
+    }
+
+    bool bfs(int source, int sink, vector<int>& parent) {
+        fill(parent.begin(), parent.end(), -1);
+
+        queue<int> q;
+        q.push(source);
+        parent[source] = source;
+
+        while (!q.empty()) {
+            int u = q.front();
+            q.pop();
+
+            for (int v : adj[u]) {
+                if (parent[v] == -1 && capacity[u][v] > 0) {
+                    parent[v] = u;
+
+                    if (v == sink)
+                        return true;
+
+                    q.push(v);
+                }
+            }
+        }
+
+        return false;
+    }
+
+    long long maxFlow(int source, int sink) {
+        if (source == sink)
+            return 0;
+
+        vector<int> parent(n);
+        long long flow = 0;
+
+        while (bfs(source, sink, parent)) {
+            long long pathFlow = LLONG_MAX;
+
+            for (int v = sink; v != source; v = parent[v]) {
+                int u = parent[v];
+                pathFlow = min(pathFlow, capacity[u][v]);
+            }
+
+            for (int v = sink; v != source; v = parent[v]) {
+                int u = parent[v];
+
+                capacity[u][v] -= pathFlow;
+                capacity[v][u] += pathFlow;
+            }
+
+            flow += pathFlow;
+        }
+
+        return flow;
+    }
+};
+
+int main() {
+    int n, m;
+    cin >> n >> m;
+
+    Graph g(n);
+
+    for (int i = 0; i < m; i++) {
+        int u, v;
+        long long w;
+        cin >> u >> v >> w;
+
+        g.addEdge(u, v, w);
+    }
+
+    int source, sink;
+    cin >> source >> sink;
+
+    cout << "Maximum Flow: "
+         << g.maxFlow(source, sink) << endl;
+
+    return 0;
+}
