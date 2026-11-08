@@ -1,0 +1,100 @@
+#include <iostream>
+#include <unordered_map>
+#include <list>
+using namespace std;
+
+class LFUCache {
+    int capacity, minFreq;
+
+    unordered_map<int, pair<int, int>> values;
+    unordered_map<int, list<int>> freqList;
+    unordered_map<int, list<int>::iterator> position;
+
+    void updateFrequency(int key) {
+        int freq = values[key].second;
+
+        freqList[freq].erase(position[key]);
+
+        if (freqList[freq].empty()) {
+            freqList.erase(freq);
+
+            if (minFreq == freq)
+                minFreq++;
+        }
+
+        values[key].second++;
+
+        int newFreq = values[key].second;
+        freqList[newFreq].push_front(key);
+        position[key] = freqList[newFreq].begin();
+    }
+
+public:
+    LFUCache(int capacity) {
+        this->capacity = capacity;
+        minFreq = 0;
+    }
+
+    int get(int key) {
+        if (values.find(key) == values.end())
+            return -1;
+
+        int result = values[key].first;
+        updateFrequency(key);
+
+        return result;
+    }
+
+    void put(int key, int value) {
+        if (capacity <= 0)
+            return;
+
+        if (values.find(key) != values.end()) {
+            values[key].first = value;
+            updateFrequency(key);
+            return;
+        }
+
+        if (values.size() == capacity) {
+            int evictKey = freqList[minFreq].back();
+
+            freqList[minFreq].pop_back();
+
+            if (freqList[minFreq].empty())
+                freqList.erase(minFreq);
+
+            values.erase(evictKey);
+            position.erase(evictKey);
+        }
+
+        values[key] = {value, 1};
+        freqList[1].push_front(key);
+        position[key] = freqList[1].begin();
+        minFreq = 1;
+    }
+};
+
+int main() {
+    int capacity, q;
+    cin >> capacity >> q;
+
+    LFUCache cache(capacity);
+
+    while (q--) {
+        string operation;
+        cin >> operation;
+
+        if (operation == "PUT") {
+            int key, value;
+            cin >> key >> value;
+            cache.put(key, value);
+        }
+        else if (operation == "GET") {
+            int key;
+            cin >> key;
+            cout << cache.get(key) << endl;
+        }
+    }
+
+    return 0;
+}
