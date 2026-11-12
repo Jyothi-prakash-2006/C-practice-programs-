@@ -1,0 +1,59 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <climits>
+using namespace std;
+
+const long long INF = LLONG_MAX / 4;
+
+long long tsp(int mask, int pos, int n,
+              const vector<vector<int>>& dist,
+              vector<vector<long long>>& dp) {
+
+    if (mask == (1 << n) - 1)
+        return dist[pos][0];
+
+    if (dp[mask][pos] != -1)
+        return dp[mask][pos];
+
+    long long ans = INF;
+
+    for (int city = 0; city < n; city++) {
+        if (!(mask & (1 << city))) {
+            long long cost = dist[pos][city] +
+                tsp(mask | (1 << city), city, n, dist, dp);
+
+            ans = min(ans, cost);
+        }
+    }
+
+    return dp[mask][pos] = ans;
+}
+
+int main() {
+    int n;
+    cin >> n;
+
+    if (n < 1 || n > 20) {
+        cout << "Invalid number of cities";
+        return 0;
+    }
+
+    vector<vector<int>> dist(n, vector<int>(n));
+
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            cin >> dist[i][j];
+        }
+    }
+
+    vector<vector<long long>> dp(
+        1 << n, vector<long long>(n, -1)
+    );
+
+    long long result = tsp(1, 0, n, dist, dp);
+
+    cout << "Minimum Traveling Cost: " << result << endl;
+
+    return 0;
+}
