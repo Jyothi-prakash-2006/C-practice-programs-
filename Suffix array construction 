@@ -1,0 +1,59 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <numeric>
+using namespace std;
+
+vector<int> buildSuffixArray(const string& s) {
+    int n = s.size();
+
+    vector<int> sa(n), rank(n), temp(n);
+
+    iota(sa.begin(), sa.end(), 0);
+
+    for (int i = 0; i < n; i++)
+        rank[i] = s[i];
+
+    for (int k = 1; k < n; k *= 2) {
+        auto compare = [&](int a, int b) {
+            if (rank[a] != rank[b])
+                return rank[a] < rank[b];
+
+            int ra = a + k < n ? rank[a + k] : -1;
+            int rb = b + k < n ? rank[b + k] : -1;
+
+            return ra < rb;
+        };
+
+        sort(sa.begin(), sa.end(), compare);
+
+        temp[sa[0]] = 0;
+
+        for (int i = 1; i < n; i++) {
+            temp[sa[i]] = temp[sa[i - 1]] +
+                          compare(sa[i - 1], sa[i]);
+        }
+
+        rank = temp;
+
+        if (rank[sa[n - 1]] == n - 1)
+            break;
+    }
+
+    return sa;
+}
+
+int main() {
+    string s;
+    cin >> s;
+
+    vector<int> suffixArray = buildSuffixArray(s);
+
+    cout << "Suffix Array:\n";
+
+    for (int index : suffixArray) {
+        cout << index << " : " << s.substr(index) << endl;
+    }
+
+    return 0;
+}
