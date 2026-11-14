@@ -1,0 +1,116 @@
+#include <iostream>
+#include <vector>
+#include <queue>
+#include <climits>
+#include <algorithm>
+using namespace std;
+
+struct Edge {
+    int to, rev, capacity, cost;
+};
+
+class MinCostMaxFlow {
+    int n;
+    vector<vector<Edge>> graph;
+
+public:
+    MinCostMaxFlow(int n) {
+        this->n = n;
+        graph.resize(n);
+    }
+
+    void addEdge(int u, int v, int capacity, int cost) {
+        Edge a = {v, (int)graph[v].size(), capacity, cost};
+        Edge b = {u, (int)graph[u].size(), 0, -cost};
+
+        graph[u].push_back(a);
+        graph[v].push_back(b);
+    }
+
+    pair<int, long long> solve(int source, int sink) {
+        int maxFlow = 0;
+        long long minCost = 0;
+
+        while (true) {
+            vector<int> dist(n, INT_MAX);
+            vector<int> parentNode(n, -1);
+            vector<int> parentEdge(n, -1);
+            vector<bool> inQueue(n, false);
+
+            queue<int> q;
+            dist[source] = 0;
+            q.push(source);
+            inQueue[source] = true;
+
+            while (!q.empty()) {
+                int u = q.front();
+                q.pop();
+                inQueue[u] = false;
+
+                for (int i = 0; i < graph[u].size(); i++) {
+                    Edge &e = graph[u][i];
+
+                    if (e.capacity > 0 &&
+                        dist[u] != INT_MAX &&
+                        dist[u] + e.cost < dist[e.to]) {
+
+                        dist[e.to] = dist[u] + e.cost;
+                        parentNode[e.to] = u;
+                        parentEdge[e.to] = i;
+
+                        if (!inQueue[e.to]) {
+                            q.push(e.to);
+                            inQueue[e.to] = true;
+                        }
+                    }
+                }
+            }
+
+            if (dist[sink] == INT_MAX)
+                break;
+
+            int flow = INT_MAX;
+
+            for (int v = sink; v != source; v = parentNode[v]) {
+                Edge &e = graph[parentNode[v]][parentEdge[v]];
+                flow = min(flow, e.capacity);
+            }
+
+            for (int v = sink; v != source; v = parentNode[v]) {
+                Edge &e = graph[parentNode[v]][parentEdge[v]];
+
+                e.capacity -= flow;
+                graph[v][e.rev].capacity += flow;
+            }
+
+            maxFlow += flow;
+            minCost += 1LL * flow * dist[sink];
+        }
+
+        return {maxFlow, minCost};
+    }
+};
+
+int main() {
+    int n, m;
+    cin >> n >> m;
+
+    MinCostMaxFlow network(n);
+
+    for (int i = 0; i < m; i++) {
+        int u, v, capacity, cost;
+        cin >> u >> v >> capacity >> cost;
+
+        network.addEdge(u, v, capacity, cost);
+    }
+
+    int source, sink;
+    cin >> source >> sink;
+
+    auto result = network.solve(source, sink);
+
+    cout << "Maximum Flow: " << result.first << endl;
+    cout << "Minimum Cost: " << result.second << endl;
+
+    return 0;
+}
