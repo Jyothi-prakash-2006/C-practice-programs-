@@ -1,0 +1,86 @@
+#include <iostream>
+#include <map>
+#include <vector>
+#include <string>
+#include <functional>
+using namespace std;
+
+class ConsistentHashing {
+    map<size_t, string> ring;
+    int replicas;
+
+    size_t hashValue(const string& key) {
+        return hash<string>{}(key);
+    }
+
+public:
+    ConsistentHashing(int replicas) {
+        this->replicas = replicas;
+    }
+
+    void addServer(const string& server) {
+        for (int i = 0; i < replicas; i++) {
+            string virtualNode = server + "#" + to_string(i);
+            ring[hashValue(virtualNode)] = server;
+        }
+    }
+
+    void removeServer(const string& server) {
+        for (int i = 0; i < replicas; i++) {
+            string virtualNode = server + "#" + to_string(i);
+            ring.erase(hashValue(virtualNode));
+        }
+    }
+
+    string getServer(const string& key) {
+        if (ring.empty())
+            return "No servers available";
+
+        size_t hash = hashValue(key);
+
+        auto it = ring.lower_bound(hash);
+
+        if (it == ring.end())
+            it = ring.begin();
+
+        return it->second;
+    }
+
+    void displayServers() {
+        cout << "\nHash Ring:\n";
+
+        for (auto& node : ring)
+            cout << node.first << " -> " << node.second << endl;
+    }
+};
+
+int main() {
+    ConsistentHashing system(3);
+
+    system.addServer("ServerA");
+    system.addServer("ServerB");
+    system.addServer("ServerC");
+
+    system.displayServers();
+
+    vector<string> keys = {
+        "User101", "User102", "User103",
+        "User104", "User105"
+    };
+
+    cout << "\nKey Distribution:\n";
+
+    for (const string& key : keys)
+        cout << key << " -> " << system.getServer(key) << endl;
+
+    cout << "\nRemoving ServerB...\n";
+
+    system.removeServer("ServerB");
+
+    cout << "\nUpdated Distribution:\n";
+
+    for (const string& key : keys)
+        cout << key << " -> " << system.getServer(key) << endl;
+
+    return 0;
+}
