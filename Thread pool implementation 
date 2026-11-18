@@ -1,0 +1,85 @@
+#include <iostream>
+#include <vector>
+#include <queue>
+#include <thread>
+#include <mutex>
+#include <condition_variable>
+#include <functional>
+using namespace std;
+
+class ThreadPool {
+    vector<thread> workers;
+    queue<function<void()>> tasks;
+
+    mutex mtx;
+    condition_variable condition;
+    bool stopped = false;
+
+public:
+    ThreadPool(int threadCount) {
+        for (int i = 0; i < threadCount; i++) {
+            workers.emplace_back([this]() {
+                while (true) {
+                    function<void()> task;
+
+                    {
+                        unique_lock<mutex> lock(mtx);
+
+                        condition.wait(lock, [this]() {
+                            return stopped || !tasks.empty();
+                        });
+
+                        if (stopped && tasks.empty())
+                            return;
+
+                        task = move(tasks.front());
+                        tasks.pop();
+                    }
+
+                    task();
+                }
+            });
+        }
+    }
+
+    void enqueue(function<void()> task) {
+        {
+            lock_guard<mutex> lock(mtx);
+
+            if (stopped)
+                return;
+
+            tasks.push(move(task));
+        }
+
+        condition.notify_one();
+    }
+
+    ~ThreadPool() {
+        {
+            lock_guard<mutex> lock(mtx);
+            stopped = true;
+        }
+
+        condition.notify_all();
+
+        for (thread& worker : workers) {
+            if (worker.joinable())
+                worker.join();
+        }
+    }
+};
+
+int main() {
+    ThreadPool pool(4);
+
+    for (int i = 1; i <= 10; i++) {
+        pool.enqueue([i]() {
+            cout << "Task " << i
+                 << " executed by thread "
+                 << this_thread::get_id() << endl;
+        });
+    }
+
+    return 0;
+}
