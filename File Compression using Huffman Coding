@@ -1,0 +1,98 @@
+#include <iostream>
+#include <queue>
+#include <unordered_map>
+#include <string>
+using namespace std;
+
+struct Node {
+    char ch;
+    int freq;
+    Node* left;
+    Node* right;
+
+    Node(char c, int f) {
+        ch = c;
+        freq = f;
+        left = right = nullptr;
+    }
+};
+
+struct Compare {
+    bool operator()(Node* a, Node* b) {
+        return a->freq > b->freq;
+    }
+};
+
+void generateCodes(Node* root, string code,
+                  unordered_map<char, string>& codes) {
+    if (!root)
+        return;
+
+    if (!root->left && !root->right)
+        codes[root->ch] = code.empty() ? "0" : code;
+
+    generateCodes(root->left, code + "0", codes);
+    generateCodes(root->right, code + "1", codes);
+}
+
+int main() {
+    string text;
+    getline(cin, text);
+
+    unordered_map<char, int> frequency;
+
+    for (char ch : text)
+        frequency[ch]++;
+
+    priority_queue<Node*, vector<Node*>, Compare> pq;
+
+    for (auto& entry : frequency)
+        pq.push(new Node(entry.first, entry.second));
+
+    while (pq.size() > 1) {
+        Node* left = pq.top();
+        pq.pop();
+
+        Node* right = pq.top();
+        pq.pop();
+
+        Node* parent = new Node('\0', left->freq + right->freq);
+        parent->left = left;
+        parent->right = right;
+
+        pq.push(parent);
+    }
+
+    Node* root = pq.top();
+
+    unordered_map<char, string> codes;
+    generateCodes(root, "", codes);
+
+    cout << "Huffman Codes:\n";
+
+    for (auto& entry : codes)
+        cout << entry.first << " : " << entry.second << endl;
+
+    string encoded;
+
+    for (char ch : text)
+        encoded += codes[ch];
+
+    cout << "\nEncoded Text:\n" << encoded << endl;
+
+    string decoded;
+    Node* current = root;
+
+    for (char bit : encoded) {
+        current = (bit == '0') ? current->left : current->right;
+
+        if (!current->left && !current->right) {
+            decoded += current->ch;
+            current = root;
+        }
+    }
+
+    cout << "\nDecoded Text:\n" << decoded << endl;
+
+    return 0;
+}
